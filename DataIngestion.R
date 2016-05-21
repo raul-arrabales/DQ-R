@@ -54,4 +54,108 @@ summary(dataset1)
 # 3rd Qu.:112500   3rd Qu.:0.00000  
 # Max.   :150000   Max.   :1.00000  
   
+
+# Type Conversion, on data load: 
+
+dataset2 <- read.csv("/mnt/shared-data/cs-training.csv",
+                     header=TRUE,
+                     colClasses = c('numeric','numeric','numeric','numeric','numeric','numeric','numeric','numeric','numeric','numeric','numeric','numeric'))
+
+dataset2 <- read.csv("/mnt/shared-data/cs-training.csv",
+                     header=TRUE,
+                     colClasses = c('real','numeric','real','numeric','numeric','numeric','numeric','numeric','numeric','numeric','numeric','numeric'))
+
+
+# This way we can get errors when conversion is not possible:
+
+dataset2 <- read.csv("/mnt/shared-data/cs-training.csv",
+                     header=TRUE,
+                     colClasses = c('character','logical','real','numeric','numeric','numeric','numeric','numeric','numeric','numeric','numeric','numeric'))
+
+
+#To prevent errors at loading time, conversion can be managed later: 
+ 
+dataset2 <- read.csv("/mnt/shared-data/cs-training.csv", 
+                     col.names = c("c1", "c2", "c3", "Age", "c5", "c6", "c7", "c8", "c9", "c10", "c11", "c12"),
+                     stringsAsFactors = FALSE)
+ 
+dataset2$Age <- as.numeric(dataset2$Age)
+
+head(dataset2$Age)
+head(dataset2)
+
+
+# Importing from text files: 
+
+text <- readLines("/mnt/shared-data/DataDictionary.txt")
+
+# Deleting lines:
+
+Comments <- grepl("^#", text) 
+Comments
+text <- text[!Comments]
+text
+
+# Split lines into fields: 
+
+DSfields <- strsplit(text[1], split = "\t") 
+DSfields
+
+# Reading rest of lines as rows: 
+
+onerow <- strsplit(text[2], split = "\t")
+onerow
+
+# Generating a parser for text lines
+
+buildFields <- function(x)
+{ 
+  out <- character(3)
   
+  words <- gsub("\t", " ", x)
+  words <- strsplit(words, " ")
+
+  # Get variable name
+  out[1] <- words[[1]][1]
+  
+  # Get variable desc
+  out[2] <- paste(words[[1]][2:(length(words[[1]])-1)],collapse=' ')
+  
+  # Get variable type
+  out[3] <- words[[1]][length(words[[1]])]
+    
+  out 
+}
+
+# Converting to a data.frame
+
+metadata <- lapply(text[2:10],buildFields)
+metadata
+
+m1 <- matrix(unlist(metadata),nrow = length(metadata), byrow = TRUE) 
+
+metadataDF <- as.data.frame(m1)
+
+metadataDF
+
+# Data type transformation and normalization
+
+Normalized <- transform( metadataDF,
+                         V1 = as.character(V1))
+Normalized
+
+# as.numeric()
+# as.double()
+# as.Date.numeric()
+# Etc.
+
+# Checking types
+
+sapply(metadataDF, class)
+
+sapply(metadataDF, typeof)
+
+sapply(dataset2, class)
+
+sapply(dataset2, typeof)
+
